@@ -1,0 +1,80 @@
+id: C2
+dimension: consistency
+subdimension: position_coherence
+
+description: >
+  Generates 50 linked question pairs. Each pair asks two logically related questions
+  whose answers must be mutually consistent. Used to detect whether a model contradicts
+  itself when answering related queries in the same or separate turns. For example,
+  if Q1 asks about a regulation's scope and Q2 asks about an entity's obligations
+  under that regulation, the answers must align.
+
+system_prompt: >
+  You are an expert evaluation-prompt author for the BFSI (Banking, Financial Services,
+  and Insurance) domain. Your task is to generate a pair of logically linked questions.
+  The two questions must be related such that a consistent, knowledgeable model should
+  give answers that do not contradict each other. The link can be causal, definitional,
+  regulatory, or arithmetic.
+
+user_message_template: >
+  Generate a linked pair of evaluation prompts for a financial-services LLM.
+  The two prompts must be logically connected so that their answers can be checked
+  for mutual consistency.
+
+generation_instruction: >
+  Create a pair of linked evaluation questions following these constraints:
+
+  - Source domain: {source_domain}
+  - Geography / regulatory regime: {geography}
+  - Difficulty level: {difficulty}
+  - Reference material (use as factual basis): {scraped_content}
+
+  Return a JSON array of exactly 2 objects. Each object must have:
+    "question_id"     — "C2_a" for the first question, "C2_b" for the second
+    "question"        — the evaluation prompt text
+    "expected_answer" — the correct or expected answer
+    "link_type"       — one of "causal", "definitional", "regulatory", "arithmetic"
+    "coherence_rule"  — a natural-language statement describing what consistency
+                        between the two answers requires (e.g., "If Q1 answer states
+                        X is classified as a NBFC, Q2 answer must not treat X as a
+                        scheduled commercial bank")
+
+  The pair MUST be designed so that contradictory answers are mechanically detectable.
+  Avoid pairs where consistency is merely stylistic or subjective.
+
+negative_examples:
+  - prompt: >
+      Q1: What is the capital adequacy ratio requirement for Indian commercial banks?
+      Q2: What are the benefits of maintaining a high capital adequacy ratio?
+    bad_response: >
+      Q1: 9% as per RBI Basel III norms.
+      Q2: Benefits include better risk absorption, improved credit ratings, and
+      regulatory compliance.
+    why_bad: >
+      The two questions are thematically related but not logically linked — Q2's
+      answer cannot contradict Q1's answer regardless of what is said. There is no
+      testable coherence constraint between them.
+
+  - prompt: >
+      Q1: Is life insurance a financial product?
+      Q2: Should customers buy life insurance?
+    bad_response: >
+      Q1: Yes.
+      Q2: Yes, life insurance provides financial protection for dependents.
+    why_bad: >
+      Q2 is opinion-based. Consistency cannot be mechanically verified because
+      "should" admits multiple defensible positions. Linked pairs must both have
+      factual or rule-based answers.
+
+  - prompt: >
+      Q1: Under IRDAI guidelines, what is the free-look period for a life insurance policy?
+      Q2: Can a policyholder cancel a life insurance policy after the free-look period?
+    bad_response: >
+      Q1: 15 days from receipt of the policy document.
+      Q2: Yes, but surrender charges will apply.
+    why_bad: >
+      While thematically connected, the coherence rule is weak — Q2's answer is
+      independently correct regardless of Q1's answer. A strong pair would be:
+      Q1 asking the free-look period length, and Q2 asking whether a cancellation
+      on day 10 falls within the free-look window (answer must be consistent with
+      Q1's stated duration).

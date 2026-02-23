@@ -1,0 +1,16 @@
+requests
+beautifulsoup4
+wikipedia-api
+openai
+anthropic
+mistralai
+pandas
+pyarrow
+datasets
+pyyaml
+python-dotenv
+sentence-transformers
+tqdm
+tenacity
+pytest
+pydantic>=2.0

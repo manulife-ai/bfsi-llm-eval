@@ -1,0 +1,108 @@
+id: P7b
+dimension: robustness
+subdimension: zero_shot_vs_few_shot
+description: "Few-shot version of same BFSI task as P7a, with example Q&A pairs"
+
+system_prompt: |
+  You are an expert prompt engineer for financial services LLM evaluation.
+  Your task is to generate a FEW-SHOT evaluation prompt that tests an
+  LLM's knowledge of BFSI topics by first providing 2-3 example Q&A pairs
+  that demonstrate the expected task, format, and depth. This prompt is
+  paired with a P7a zero-shot variant to measure the effect of in-context
+  examples on model performance.
+
+user_message_template: |
+  Generate a single FEW-SHOT evaluation prompt for the following BFSI topic.
+
+  Topic context:
+  {scraped_content}
+
+  The prompt MUST include 2-3 example Q&A pairs that demonstrate the task
+  before posing the actual test question. Examples must be factually
+  correct, from the same domain, and set a clear standard for answer
+  depth and format. The test question must match the P7a zero-shot
+  variant's intent exactly.
+
+generation_instruction: |
+  Create one FEW-SHOT evaluation prompt for a BFSI task.
+  - Source domain: {source_domain}
+  - Geography: {geography}
+  - Difficulty: {difficulty}
+  - Reference material: {scraped_content}
+
+  Rules:
+  1. Include 2-3 example Q&A pairs before the test question.
+  2. Examples must be factually accurate and from the same BFSI domain.
+  3. Examples must demonstrate the exact format and depth expected.
+  4. The test question must have the SAME intent as the paired P7a prompt.
+  5. Examples should be on related but distinct sub-topics to avoid
+     leaking the answer.
+  6. Clearly separate examples from the test question with a marker
+     like "Now answer this:" or "Your turn:".
+  7. Tag the output with difficulty level, geography, and pair_id for
+     matching with P7a.
+
+negative_examples:
+  - prompt: |
+      Example 1:
+      Q: Classify this transaction under AML guidelines — A customer wires USD 15,000 to a shell company in a high-risk jurisdiction with no stated business purpose.
+      A: Classification: Suspicious. Red flags: (1) Transfer to shell company, (2) high-risk jurisdiction, (3) no business rationale. Triggers STR filing under FATF Recommendation 20 and local AML regulations.
+
+      Example 2:
+      Q: Classify this transaction — A salaried employee sets up a monthly SIP of INR 25,000 from their salary account.
+      A: Classification: Non-suspicious. Regular, small-value recurring investment consistent with account holder's profile and income. No red flags identified.
+
+      Now classify this:
+      Q: A retail customer deposits INR 9,50,000 in cash across three branches on the same day.
+    bad_response: >
+      Based on the examples, this seems like it could be suspicious.
+      The amount is large and spread across branches. I'll classify it
+      as suspicious.
+    why_bad: >
+      Despite having two high-quality examples demonstrating the expected
+      format (Classification + Red flags + Regulatory reference), the
+      response ignores the demonstrated structure. Should follow the
+      example format: "Classification: Suspicious. Red flags: (1) cash
+      structuring across branches, (2) aggregate amount just below INR 10L
+      CTR threshold, (3) same-day deposits suggesting deliberate splitting.
+      Triggers STR filing under PMLA Section 12."
+
+  - prompt: |
+      Example 1:
+      Q: Extract key prudential metrics from: "Banks must maintain minimum CET1 of 4.5%"
+      A: {"metric": "CET1", "threshold": "4.5%", "type": "minimum", "framework": "Basel III"}
+
+      Example 2:
+      Q: Extract key prudential metrics from: "Net NPA ratio exceeding 6% triggers PCA Risk Threshold 1"
+      A: {"metric": "Net NPA ratio", "threshold": "6%", "type": "trigger", "framework": "RBI PCA"}
+
+      Now extract from this:
+      Q: "Banks with CRAR below 9% shall be placed under Prompt Corrective Action framework"
+    bad_response: >
+      The CRAR requirement is 9% for banks. If they fall below this,
+      PCA is triggered.
+    why_bad: >
+      Ignores the JSON extraction format clearly demonstrated in both
+      examples. The response should be: {"metric": "CRAR", "threshold":
+      "9%", "type": "trigger", "framework": "RBI PCA"}. The few-shot
+      examples exist precisely to establish this format, and failure to
+      follow it indicates poor in-context learning.
+
+  - prompt: |
+      Example 1:
+      Q: Summarize IFRS 9 impairment model in under 50 words.
+      A: IFRS 9 replaces IAS 39's incurred loss model with an expected credit loss (ECL) approach across three stages: Stage 1 (12-month ECL for performing), Stage 2 (lifetime ECL for deteriorated), Stage 3 (lifetime ECL for impaired). Forward-looking macroeconomic factors must inform ECL estimates.
+
+      Now summarize:
+      Q: Summarize IFRS 17 measurement model in under 50 words.
+    bad_response: >
+      IFRS 17 is the new insurance accounting standard. It uses different
+      measurement approaches for insurance contracts. The main approach
+      involves estimating future cash flows and adjusting for risk.
+    why_bad: >
+      The example demonstrates precise, term-dense summarization within
+      a word limit. The response is vague and does not mirror this density.
+      Should mention the Building Blocks Approach (BBA) with its components:
+      fulfillment cash flows, risk adjustment, and Contractual Service
+      Margin (CSM), plus the Premium Allocation Approach (PAA) for short-
+      duration contracts.

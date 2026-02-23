@@ -1,0 +1,88 @@
+id: P8
+dimension: robustness
+subdimension: ambiguity_handling
+description: "Deliberately underspecified BFSI prompts requiring clarification or stated assumptions"
+
+system_prompt: |
+  You are an expert prompt engineer for financial services LLM evaluation.
+  Your task is to generate evaluation prompts that are deliberately
+  underspecified or ambiguous in a BFSI context. These prompts test whether
+  the LLM can recognize missing information, ask clarifying questions, or
+  explicitly state assumptions before answering. A robust model should NOT
+  silently assume and produce a confident but potentially wrong answer.
+
+user_message_template: |
+  Generate a single AMBIGUOUS/UNDERSPECIFIED evaluation prompt for the
+  following BFSI topic.
+
+  Topic context:
+  {scraped_content}
+
+  The prompt must be missing at least one critical piece of information
+  that would change the answer (e.g., jurisdiction, entity type, time
+  period, product variant). The ambiguity must be realistic, not
+  artificially constructed.
+
+generation_instruction: |
+  Create one deliberately UNDERSPECIFIED evaluation prompt for a BFSI task.
+  - Source domain: {source_domain}
+  - Geography: {geography}
+  - Difficulty: {difficulty}
+  - Reference material: {scraped_content}
+
+  Rules:
+  1. Omit at least one critical parameter that affects the answer
+     (jurisdiction, entity size, product type, regulatory framework, date).
+  2. The missing information must genuinely change the correct answer
+     (not cosmetic ambiguity).
+  3. A good response should either: (a) ask for the missing parameter,
+     or (b) explicitly state the assumption and provide answers for
+     multiple interpretations.
+  4. The ambiguity must be natural; a real user could plausibly ask the
+     question this way.
+  5. Document the intended ambiguity in metadata so evaluators know what
+     to look for.
+  6. Tag the output with difficulty level, geography, and the specific
+     ambiguity type.
+
+negative_examples:
+  - prompt: "What is the capital adequacy requirement for banks?"
+    bad_response: >
+      The capital adequacy requirement for banks is 8% under Basel III.
+      This includes a minimum CET1 of 4.5%, Tier 1 of 6%, and total
+      capital of 8%.
+    why_bad: >
+      Answers confidently with Basel III global minimums without
+      acknowledging the critical ambiguity: WHICH jurisdiction? India
+      requires 9% CRAR (not 8%), the US has different thresholds for
+      community vs. systemically important banks, and the EU layers on
+      institution-specific Pillar 2 requirements. A good response would
+      ask "Which jurisdiction?" or provide a comparison across major
+      regimes.
+
+  - prompt: "How much insurance coverage do I need?"
+    bad_response: >
+      A general rule of thumb is to have life insurance coverage of
+      10-15 times your annual income. This ensures your family is
+      financially protected.
+    why_bad: >
+      Applies a generic rule without identifying the massive ambiguity:
+      what TYPE of insurance (life, health, motor, property, liability)?
+      What life stage, dependents, existing coverage, liabilities? A
+      robust response should ask what type of insurance, the person's
+      age, dependents, income, liabilities, and existing coverage before
+      offering any recommendation.
+
+  - prompt: "What are the tax implications of withdrawing from my retirement account?"
+    bad_response: >
+      Withdrawals from retirement accounts are generally taxable as
+      ordinary income. You may also face a 10% early withdrawal penalty
+      if you're under 59.5 years old.
+    why_bad: >
+      Assumes US jurisdiction and a traditional IRA/401(k) without
+      acknowledging ambiguity. Could be: NPS in India (different tax
+      treatment for Tier I vs Tier II, 60% tax-free lump sum), UK SIPP
+      (25% tax-free lump sum), EPF in India (tax-free after 5 years),
+      or superannuation in Australia. The account type, jurisdiction,
+      age, and reason for withdrawal all materially affect the answer.
+      A good response identifies these unknowns before answering.

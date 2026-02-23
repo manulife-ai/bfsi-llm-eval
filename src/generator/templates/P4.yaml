@@ -1,0 +1,94 @@
+id: P4
+dimension: robustness
+subdimension: phrasing_variants
+description: "Few-shot phrasing style"
+
+system_prompt: |
+  You are an expert prompt engineer for financial services LLM evaluation.
+  Your task is to generate evaluation prompts that test an LLM's knowledge
+  of banking, financial services, and insurance (BFSI) topics. The prompts
+  you generate must use a few-shot phrasing style that includes 1-2
+  example question-answer pairs before posing the actual question. The
+  examples serve as a formatting and depth guide for the model.
+
+user_message_template: |
+  Generate a single evaluation prompt in FEW-SHOT phrasing style for the
+  following BFSI topic.
+
+  Topic context:
+  {scraped_content}
+
+  The prompt must include 1-2 example Q&A pairs on a related (but different)
+  BFSI sub-topic, followed by the actual test question. The examples should
+  demonstrate the expected answer depth and format.
+
+generation_instruction: |
+  Create one evaluation prompt using FEW-SHOT phrasing style.
+  - Source domain: {source_domain}
+  - Geography: {geography}
+  - Difficulty: {difficulty}
+  - Reference material: {scraped_content}
+
+  Rules:
+  1. Provide 1-2 example Q&A pairs on related BFSI topics before the
+     actual question.
+  2. Examples must be factually correct and demonstrate expected depth.
+  3. The actual question must be clearly separated (e.g., "Now answer this:").
+  4. The underlying intent must be identical to what a P1 direct prompt
+     would ask for the same topic.
+  5. Examples and the test question must be from the same domain but
+     different enough to avoid answer leakage.
+  6. Tag the output with difficulty level and geography.
+
+negative_examples:
+  - prompt: |
+      Example 1:
+      Q: What is the risk weight for residential mortgages under Basel III standardized approach?
+      A: Under the Basel III standardized approach, residential mortgages with LTV <= 80% carry a 35% risk weight. Higher LTV loans attract progressively higher risk weights up to 100%.
+
+      Now answer this:
+      Q: What is the risk weight for commercial real estate exposures under Basel III standardized approach?
+    bad_response: >
+      Commercial real estate has a higher risk weight than residential.
+      It depends on the specific exposure and jurisdiction.
+    why_bad: >
+      Ignores the depth standard set by the few-shot example. The example
+      provided a specific risk weight with LTV conditions. The response
+      should similarly state the 100% risk weight for CRE under the
+      standardized approach (or 150% for high-volatility CRE in some
+      jurisdictions), with conditions and exceptions.
+
+  - prompt: |
+      Example 1:
+      Q: What is the IRDAI-mandated free-look period for life insurance policies in India?
+      A: IRDAI mandates a 15-day free-look period for offline policies and 30 days for e-insurance policies, during which the policyholder can return the policy and receive a refund minus proportionate risk premium and stamp duty.
+
+      Now answer this:
+      Q: What is the IRDAI-mandated claim settlement timeline for life insurance death claims in India?
+    bad_response: >
+      IRDAI requires insurers to settle claims promptly. The timeline
+      depends on whether the claim is a death claim or a maturity claim.
+      Insurers should process claims as quickly as possible.
+    why_bad: >
+      The few-shot example gave specific timelines and conditions. This
+      response must similarly specify that IRDAI requires insurers to settle
+      or reject claims within 30 days of receiving all documents. If
+      investigation is required, the timeline extends to 90 days from
+      receiving the claim. Interest is payable on delayed settlements.
+
+  - prompt: |
+      Example 1:
+      Q: What is the maximum deposit insurance coverage under DICGC in India?
+      A: DICGC covers deposits up to INR 5 lakh per depositor per bank, covering savings, fixed, current, and recurring deposits. This limit was raised from INR 1 lakh in February 2020.
+
+      Now answer this:
+      Q: What is the deposit insurance coverage limit under FDIC in the United States?
+    bad_response: >
+      The FDIC insures deposits in US banks. The coverage amount is
+      substantial and protects most depositors.
+    why_bad: >
+      Completely fails to match the specificity of the example. Must state
+      the $250,000 per depositor per institution limit, note the coverage
+      categories (single accounts, joint accounts, retirement accounts each
+      get separate $250K coverage), and mention the Dodd-Frank permanent
+      increase from $100K.

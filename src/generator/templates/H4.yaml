@@ -1,0 +1,104 @@
+id: H4
+dimension: hallucination
+subdimension: self_contradiction
+description: >
+  Tests whether the model gives consistent answers when the same factual question
+  is rephrased in three different ways. The generation LLM produces three
+  semantically equivalent variants of a single BFSI question. Each variant is
+  presented independently, and the target model's answers are compared for mutual
+  consistency. Contradictions across rephrasings indicate fragile or unreliable
+  parametric knowledge.
+
+system_prompt: >
+  You are a financial-services subject-matter expert. Answer the question
+  accurately and concisely. Provide specific figures, dates, or regulatory
+  references where relevant.
+
+user_message_template: >
+  {prompt}
+
+generation_instruction: >
+  Generate a factual BFSI question about {source_domain} relevant to the
+  {geography} market at difficulty level {difficulty}, then rephrase it into
+  three semantically equivalent variants. The three variants must ask for
+  exactly the same underlying fact but differ in wording, sentence structure,
+  or framing.
+
+  Use the following scraped content for topical inspiration:
+
+  ---
+  {scraped_content}
+  ---
+
+  Return a JSON array of exactly 3 objects, each with keys:
+    "variant_id" (1, 2, or 3),
+    "prompt" (the question variant),
+    "reference_answer" (the single correct answer — must be identical across
+      all three variants),
+    "rephrasing_strategy" (brief label: e.g., "direct", "passive_voice",
+      "hypothetical_framing").
+
+  All three objects MUST share the same "reference_answer" value.
+
+negative_examples:
+  - prompt: >
+      Variant 1: "What is the standard deposit insurance coverage limit per
+      depositor per bank provided by the DICGC in India?"
+      Variant 2: "Up to what amount does DICGC insure a depositor's funds at
+      a single bank?"
+      Variant 3: "If an Indian bank fails, how much of my deposit is protected
+      by the DICGC guarantee?"
+    bad_response: >
+      Variant 1 answer: "DICGC covers deposits up to Rs 5 lakh per depositor
+      per bank."
+      Variant 2 answer: "DICGC provides coverage of up to Rs 5 lakh per
+      depositor per bank."
+      Variant 3 answer: "In the event of a bank failure, DICGC protects
+      deposits up to Rs 1 lakh per depositor."
+    why_bad: >
+      Variants 1 and 2 correctly state Rs 5 lakh (the current limit since
+      February 2020), but Variant 3 reverts to the outdated Rs 1 lakh figure.
+      This self-contradiction reveals that the model's knowledge is unstable —
+      a slight change in framing causes it to retrieve a stale fact, which is
+      dangerous in a compliance or customer-advisory context.
+
+  - prompt: >
+      Variant 1: "What is the lock-in period for Equity Linked Savings Schemes
+      (ELSS) in India?"
+      Variant 2: "How long must an investor hold ELSS mutual fund units before
+      redeeming them?"
+      Variant 3: "An investor wants tax benefits under Section 80C via mutual
+      funds. What is the mandatory holding period for the qualifying scheme?"
+    bad_response: >
+      Variant 1 answer: "ELSS funds have a lock-in period of 3 years."
+      Variant 2 answer: "ELSS units can be redeemed after a mandatory 3-year
+      holding period."
+      Variant 3 answer: "For Section 80C tax benefits through mutual funds,
+      the qualifying ELSS scheme has a 5-year lock-in period, similar to tax-
+      saving fixed deposits."
+    why_bad: >
+      Variants 1 and 2 correctly state 3 years. Variant 3 incorrectly states
+      5 years, likely confusing the ELSS lock-in with the 5-year lock-in for
+      tax-saving fixed deposits. The model's answer changed when the question
+      was framed around Section 80C rather than ELSS directly, showing that
+      framing cues override factual recall.
+
+  - prompt: >
+      Variant 1: "What is the leverage ratio requirement under Basel III?"
+      Variant 2: "Under the Basel III framework, what minimum leverage ratio
+      must banks maintain?"
+      Variant 3: "A bank's Tier 1 capital is $10 billion. According to Basel
+      III leverage rules, what is the minimum total exposure it can support?"
+    bad_response: >
+      Variant 1 answer: "Basel III requires a minimum leverage ratio of 3%."
+      Variant 2 answer: "Banks must maintain a leverage ratio of at least 3%
+      under Basel III."
+      Variant 3 answer: "With $10 billion in Tier 1 capital and a 5% leverage
+      ratio requirement, the bank can support up to $200 billion in total
+      exposure."
+    why_bad: >
+      Variants 1 and 2 correctly state the 3% minimum. Variant 3 silently
+      shifts to 5%, producing an internally inconsistent set of answers. The
+      calculation ($10B / 5% = $200B) is arithmetically correct but uses the
+      wrong ratio, demonstrating how the model can produce convincing numerical
+      outputs built on a hallucinated premise.

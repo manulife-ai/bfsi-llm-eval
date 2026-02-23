@@ -1,0 +1,88 @@
+id: P7a
+dimension: robustness
+subdimension: zero_shot_vs_few_shot
+description: "Zero-shot version of a BFSI task, paired with P7b few-shot variant"
+
+system_prompt: |
+  You are an expert prompt engineer for financial services LLM evaluation.
+  Your task is to generate a ZERO-SHOT evaluation prompt that tests an
+  LLM's knowledge of BFSI topics without providing any examples. This
+  prompt will be paired with a P7b few-shot variant to measure whether
+  examples improve or degrade model performance on the same task.
+
+user_message_template: |
+  Generate a single ZERO-SHOT evaluation prompt for the following BFSI topic.
+
+  Topic context:
+  {scraped_content}
+
+  The prompt must NOT include any examples, demonstrations, or sample
+  answers. It should be a clean, standalone question or task that relies
+  entirely on the model's pre-trained knowledge.
+
+generation_instruction: |
+  Create one ZERO-SHOT evaluation prompt for a BFSI task.
+  - Source domain: {source_domain}
+  - Geography: {geography}
+  - Difficulty: {difficulty}
+  - Reference material: {scraped_content}
+
+  Rules:
+  1. Do NOT include any example Q&A pairs or demonstrations.
+  2. The prompt must be clear and self-contained.
+  3. The task should be one where providing examples (in P7b) could
+     plausibly change the response quality or format.
+  4. Good task types: classification (loan category, risk rating),
+     extraction (key terms from a regulation), summarization (policy
+     document), or structured generation (compliance checklist).
+  5. Record the exact task intent so P7b can replicate it with examples.
+  6. Tag the output with difficulty level, geography, and pair_id for
+     matching with P7b.
+
+negative_examples:
+  - prompt: >
+      Classify the following transaction as either "suspicious" or
+      "non-suspicious" under AML guidelines: A retail customer deposits
+      INR 9,50,000 in cash across three branches on the same day.
+    bad_response: >
+      This transaction seems suspicious because it involves cash deposits
+      at multiple branches. However, it could be legitimate. I would say
+      it's probably suspicious but more information is needed.
+    why_bad: >
+      Hedging and equivocation instead of a clear classification. The
+      response should definitively classify this as "suspicious" due to
+      structuring behavior (splitting deposits to stay below the INR 10 lakh
+      CTR threshold), cite the relevant PMLA/RBI guidelines on structuring,
+      and explain the red flags: multiple branches, same day, just-below-
+      threshold amounts.
+
+  - prompt: >
+      Extract the key prudential requirements from the following summary
+      of RBI's PCA framework and list them as structured fields: trigger
+      metrics, thresholds, and corrective actions.
+    bad_response: >
+      The PCA framework has several requirements. Banks need to maintain
+      certain ratios. If they don't, the RBI can take action. The main
+      metrics are capital and NPAs.
+    why_bad: >
+      Fails to extract and structure the information as requested. Should
+      list specific trigger metrics (CET1, CRAR, Net NPA ratio, Leverage
+      Ratio), their exact thresholds for Risk Thresholds 1-3, and the
+      corresponding mandatory and discretionary corrective actions such
+      as restriction on dividend, branch expansion, and management changes.
+
+  - prompt: >
+      Summarize the key changes introduced by IFRS 17 compared to IFRS 4
+      for insurance contract accounting in under 100 words.
+    bad_response: >
+      IFRS 17 replaces IFRS 4 and introduces new rules for insurance
+      accounting. It changes how insurance companies report their
+      financial results. The standard aims to improve transparency
+      and comparability.
+    why_bad: >
+      Vague summary that would score identically whether or not examples
+      were provided (defeating the zero-shot vs few-shot comparison purpose).
+      Should mention specific changes: the Building Blocks Approach replacing
+      diverse local practices, the Contractual Service Margin concept,
+      the shift from premium-based to service-based revenue recognition,
+      and the requirement to discount future cash flows.

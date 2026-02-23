@@ -1,0 +1,80 @@
+id: P5
+dimension: robustness
+subdimension: phrasing_variants
+description: "Noisy/typo phrasing style"
+
+system_prompt: |
+  You are an expert prompt engineer for financial services LLM evaluation.
+  Your task is to generate evaluation prompts that test an LLM's knowledge
+  of banking, financial services, and insurance (BFSI) topics. The prompts
+  you generate must use a noisy phrasing style with realistic typos,
+  grammatical errors, abbreviations, and informal language. This tests
+  whether the LLM can extract the correct intent despite surface-level
+  noise in the input.
+
+user_message_template: |
+  Generate a single evaluation prompt in NOISY/TYPO phrasing style for the
+  following BFSI topic.
+
+  Topic context:
+  {scraped_content}
+
+  The prompt must contain realistic typos, abbreviations, and informal
+  language that a real user might produce (e.g., "whats the min CAR req
+  for indian bnks?"). The underlying question must remain identifiable.
+
+generation_instruction: |
+  Create one evaluation prompt using NOISY/TYPO phrasing style.
+  - Source domain: {source_domain}
+  - Geography: {geography}
+  - Difficulty: {difficulty}
+  - Reference material: {scraped_content}
+
+  Rules:
+  1. Introduce 2-4 realistic typos or abbreviations into the prompt.
+  2. Use informal casing and punctuation (missing capitals, periods).
+  3. The core intent must remain unambiguous despite the noise.
+  4. Do NOT make the prompt unintelligible; a human should easily parse it.
+  5. The underlying intent must be identical to what a P1 direct prompt
+     would ask for the same topic.
+  6. The expected answer quality should be identical to any other phrasing
+     variant.
+  7. Tag the output with difficulty level and geography.
+
+negative_examples:
+  - prompt: "whats teh diffrence btwn npa and sma classifications for bnk loans in india?"
+    bad_response: >
+      I think you're asking about NPAs. NPA stands for Non-Performing Asset.
+      It's when a borrower doesn't pay. SMA might refer to something else.
+      Could you clarify?
+    why_bad: >
+      The model should not be confused by typos. SMA (Special Mention Account)
+      is a well-known RBI classification. The response should explain SMA-0
+      (1-30 days overdue), SMA-1 (31-60 days), SMA-2 (61-90 days), and the
+      transition to NPA at 90+ days overdue, without asking for clarification
+      on clearly recognizable BFSI terminology.
+
+  - prompt: "can u explan how the lcr calc works fr banks? like the hqla part nd the net outflows"
+    bad_response: >
+      LCR stands for Liquidity Coverage Ratio. It's calculated as
+      LCR = HQLA / Net Cash Outflows. Banks need to maintain this ratio
+      above a certain level.
+    why_bad: >
+      While technically correct at a surface level, the response does not
+      explain HQLA composition (Level 1 assets at 100%, Level 2A at 85%
+      haircut, Level 2B at 50-75% haircut), the 30-day stress scenario for
+      net outflows, the caps on Level 2 assets (40% total, 15% for Level 2B),
+      or the minimum 100% ratio requirement.
+
+  - prompt: "hw does the irda regulte ulips diffrently from traditonal plans?? asking for wrk"
+    bad_response: >
+      ULIPs and traditional plans are different types of insurance products.
+      IRDAI regulates both but they have different rules. ULIPs have
+      investment components while traditional plans are more straightforward.
+    why_bad: >
+      Does not address the specific regulatory differences despite the noisy
+      phrasing being clearly understandable. Should mention the 5-year
+      lock-in period for ULIPs, the cap on fund management charges (1.35%),
+      minimum mortality cover requirements, the segregation of policyholder
+      and shareholder funds, and the NAV-based transparency requirements
+      that differ from traditional plan regulation.

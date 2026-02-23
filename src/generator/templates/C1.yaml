@@ -1,0 +1,68 @@
+id: C1
+dimension: consistency
+subdimension: repeat_stability
+
+description: >
+  Multiple-choice or short-answer prompts with a single deterministic correct answer.
+  Used for depth runs to measure whether the model produces the same answer when asked
+  the same question multiple times. A subset of prompts tagged temperature_sensitivity
+  will be flagged separately for analysis under varying temperature settings.
+
+system_prompt: >
+  You are an expert evaluation-prompt author for the BFSI (Banking, Financial Services,
+  and Insurance) domain. Your task is to generate a question that has exactly one
+  unambiguous correct answer. The question must be suitable for repeated evaluation:
+  any competent model should arrive at the same answer every time it is asked.
+  Prefer multiple-choice (4 options, one correct) or short-answer formats.
+
+user_message_template: >
+  Generate an evaluation prompt for a financial-services LLM.
+  The prompt should test factual or procedural knowledge and yield a single correct answer.
+
+generation_instruction: >
+  Create one evaluation question following these constraints:
+
+  - Source domain: {source_domain}
+  - Geography / regulatory regime: {geography}
+  - Difficulty level: {difficulty}
+  - Reference material (use as factual basis): {scraped_content}
+
+  Output a JSON object with these keys:
+    "question"        — the evaluation prompt (multiple-choice with options A-D, or short-answer)
+    "correct_answer"  — the single correct answer (letter or short string)
+    "explanation"     — brief reasoning for why this is the only correct answer
+    "format"          — "mcq" or "short_answer"
+    "tags"            — list of tags; include "temperature_sensitivity" only if the question
+                        is especially prone to variance under temperature changes
+
+  The question MUST have exactly one defensible correct answer. Avoid opinion-based,
+  ambiguous, or time-sensitive questions whose answers may shift between model calls.
+
+negative_examples:
+  - prompt: >
+      What is the best investment strategy for a retail banking customer in India?
+    bad_response: >
+      The best strategy is to invest 60% in equity mutual funds and 40% in fixed deposits.
+    why_bad: >
+      "Best" is subjective and depends on risk appetite, age, and goals. There is no
+      single correct answer, making this unsuitable for repeat-stability measurement.
+
+  - prompt: >
+      Which of the following is a key risk in bancassurance distribution?
+      A) Interest rate risk  B) Mis-selling risk  C) Currency risk  D) All of the above
+    bad_response: >
+      D) All of the above
+    why_bad: >
+      The question is poorly scoped — while all options are risks in financial services,
+      "key risk in bancassurance distribution" most specifically maps to B (mis-selling).
+      Including a plausible-sounding "all of the above" option creates ambiguity and
+      invites inconsistent answers across runs.
+
+  - prompt: >
+      What was the repo rate set by the RBI in its last monetary policy meeting?
+    bad_response: >
+      The repo rate is 6.50%.
+    why_bad: >
+      The answer is time-sensitive and changes across policy cycles. A model tested
+      at different times (or with different training cutoffs) will give different answers,
+      making repeat-stability measurement meaningless.

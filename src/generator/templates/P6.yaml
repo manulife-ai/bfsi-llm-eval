@@ -1,0 +1,100 @@
+id: P6
+dimension: robustness
+subdimension: instruction_following
+description: "Format and constraint compliance for structured BFSI outputs"
+
+system_prompt: |
+  You are an expert prompt engineer for financial services LLM evaluation.
+  Your task is to generate evaluation prompts that test an LLM's ability
+  to follow precise formatting and structural constraints while answering
+  BFSI questions. The prompts must include explicit output format
+  requirements such as JSON output, word limits, bullet-point structures,
+  table formats, or specific section headings.
+
+user_message_template: |
+  Generate a single evaluation prompt that tests INSTRUCTION FOLLOWING
+  for the following BFSI topic.
+
+  Topic context:
+  {scraped_content}
+
+  The prompt must include at least two explicit formatting constraints
+  (e.g., "respond in JSON", "limit to 100 words", "use exactly 3 bullet
+  points", "include a table with columns X, Y, Z"). The BFSI content
+  must still be substantive and testable.
+
+generation_instruction: |
+  Create one evaluation prompt testing FORMAT/CONSTRAINT compliance.
+  - Source domain: {source_domain}
+  - Geography: {geography}
+  - Difficulty: {difficulty}
+  - Reference material: {scraped_content}
+
+  Rules:
+  1. Include at least TWO explicit formatting constraints in the prompt.
+  2. Constraints can be: JSON schema, word/sentence limits, required
+     sections, table format, bullet count, specific field names, etc.
+  3. The underlying BFSI question must require genuine domain knowledge.
+  4. Constraints must be verifiable programmatically where possible.
+  5. The prompt should clearly state what happens if constraints are
+     violated (e.g., "Do not exceed 150 words. Do not add any preamble.").
+  6. Tag the output with difficulty level and geography.
+
+negative_examples:
+  - prompt: >
+      List the top 3 risks in Indian banking sector. Respond in valid JSON
+      with this schema: {"risks": [{"name": str, "description": str,
+      "severity": "high"|"medium"|"low"}]}. Do not include any text
+      outside the JSON block.
+    bad_response: |
+      Here are the top 3 risks in Indian banking:
+      1. Credit Risk - NPAs remain a challenge
+      2. Operational Risk - Cyber threats increasing
+      3. Market Risk - Interest rate volatility
+
+      These are important considerations for the sector.
+    why_bad: >
+      Completely ignores the JSON format requirement. Responds in plain text
+      with a numbered list instead of the specified JSON schema. Also adds
+      a preamble ("Here are...") and a postamble ("These are important...")
+      which were explicitly prohibited. A correct response would be only
+      the JSON object with no surrounding text.
+
+  - prompt: >
+      Compare term deposit rates across SBI, HDFC Bank, and ICICI Bank for
+      1-year tenure. Present as a markdown table with columns: Bank, Rate,
+      Effective Date. Limit your response to the table only, no commentary.
+    bad_response: |
+      | Bank | Rate |
+      |------|------|
+      | SBI  | Around 6-7% |
+      | HDFC | Competitive rates |
+      | ICICI | Similar to others |
+
+      Note: Rates change frequently, so please check the latest rates on
+      the respective bank websites.
+    why_bad: >
+      Violates multiple constraints: missing the "Effective Date" column,
+      uses vague descriptions instead of specific rates, and adds commentary
+      after the table despite "no commentary" instruction. The response
+      should have exactly three columns and provide specific rate figures
+      (even if approximate from training data).
+
+  - prompt: >
+      Explain the Solvency II three-pillar framework in exactly 3 bullet
+      points, one per pillar. Each bullet must be 20-30 words. No
+      introduction or conclusion.
+    bad_response: >
+      Solvency II is a regulatory framework for insurance companies in the EU.
+
+      - Pillar 1 covers quantitative requirements including capital requirements.
+      - Pillar 2 is about governance and risk management supervision.
+      - Pillar 3 deals with disclosure and transparency requirements for market discipline.
+
+      This framework ensures the stability of the insurance sector.
+    why_bad: >
+      Adds an introduction and conclusion despite explicit prohibition.
+      Bullet points are under 20 words each (constraints require 20-30).
+      The bullets lack specificity; Pillar 1 should mention SCR/MCR
+      calculation, Pillar 2 should mention ORSA, and Pillar 3 should
+      mention SFCR and RSR reports.

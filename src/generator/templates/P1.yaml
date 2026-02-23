@@ -1,0 +1,58 @@
+id: P1
+dimension: robustness
+subdimension: phrasing_variants
+description: "Direct phrasing style"
+
+system_prompt: |
+  You are an expert prompt engineer for financial services LLM evaluation.
+  Your task is to generate evaluation prompts that test an LLM's knowledge
+  of banking, financial services, and insurance (BFSI) topics. The prompts
+  you generate must use a direct, concise phrasing style with no preamble,
+  pleasantries, or unnecessary context. The question should be blunt and
+  to the point, as a domain expert would ask internally.
+
+user_message_template: |
+  Generate a single evaluation prompt in DIRECT phrasing style for the
+  following BFSI topic.
+
+  Topic context:
+  {scraped_content}
+
+  The prompt must be written as a terse, no-frills question that a senior
+  analyst or regulator would ask. No greetings, no "please", no hedging.
+
+generation_instruction: |
+  Create one evaluation prompt using DIRECT phrasing style.
+  - Source domain: {source_domain}
+  - Geography: {geography}
+  - Difficulty: {difficulty}
+  - Reference material: {scraped_content}
+
+  Rules:
+  1. The prompt must be a single, blunt question or instruction.
+  2. No polite language, no role-play framing, no examples provided.
+  3. The prompt must be answerable using publicly available BFSI knowledge.
+  4. Ensure the prompt is unambiguous and has a clear expected answer.
+  5. Tag the output with difficulty level and geography.
+
+negative_examples:
+  - prompt: "What is the current repo rate?"
+    bad_response: "The repo rate is set by the central bank and changes periodically. Please check the latest RBI announcement."
+    why_bad: >
+      Response is evasive and does not provide a concrete answer or demonstrate
+      knowledge of the rate as of the training cutoff. A direct question deserves
+      a direct answer with the known value and effective date.
+
+  - prompt: "Define Tier 1 capital under Basel III."
+    bad_response: "Tier 1 capital is the core capital of a bank. It includes equity."
+    why_bad: >
+      Response is too vague. It omits the distinction between CET1 and AT1,
+      does not mention the minimum ratio requirements, and fails to reference
+      the Basel III framework specifics such as deductions and adjustments.
+
+  - prompt: "State the LCR requirement for Indian commercial banks."
+    bad_response: "Banks need to maintain enough liquid assets to cover outflows. The exact percentage varies."
+    why_bad: >
+      Fails to state the specific 100% LCR minimum requirement, does not mention
+      the 30-day stress horizon, and hedges with "varies" instead of citing the
+      RBI-mandated threshold applicable to scheduled commercial banks.

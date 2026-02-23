@@ -1,0 +1,85 @@
+wikipedia:
+  enabled: true
+  categories:
+    - "Category:Canadian_financial_institutions"
+    - "Category:Insurance_in_Canada"
+    - "Category:Banking_in_the_United_States"
+    - "Category:Retirement_in_Canada"
+    - "Category:Financial_regulation_in_Canada"
+    - "Category:Insurance_in_the_United_States"
+    - "Category:Financial_regulation_in_the_United_States"
+    - "Category:Investment_in_Canada"
+    - "Category:Taxation_in_Canada"
+    - "Category:Taxation_in_the_United_States"
+  max_articles_per_category: 50
+
+web_sources:
+  enabled: true
+  targets:
+    - name: "RBC"
+      url: "https://www.rbc.com/personal-banking.html"
+      domain: banking
+      geography: canada
+    - name: "TD Canada Trust"
+      url: "https://www.td.com/ca/en/personal-banking"
+      domain: banking
+      geography: canada
+    - name: "BMO"
+      url: "https://www.bmo.com/main/personal"
+      domain: banking
+      geography: canada
+    - name: "Scotiabank"
+      url: "https://www.scotiabank.com/ca/en/personal.html"
+      domain: banking
+      geography: canada
+    - name: "CIBC"
+      url: "https://www.cibc.com/en/personal-banking.html"
+      domain: banking
+      geography: canada
+    - name: "Sun Life"
+      url: "https://www.sunlife.ca/en/"
+      domain: insurance
+      geography: canada
+    - name: "Manulife"
+      url: "https://www.manulife.ca/personal.html"
+      domain: insurance
+      geography: canada
+    - name: "Great-West Life"
+      url: "https://www.greatwestlife.com"
+      domain: insurance
+      geography: canada
+    - name: "State Farm"
+      url: "https://www.statefarm.com"
+      domain: insurance
+      geography: usa
+    - name: "Allstate"
+      url: "https://www.allstate.com"
+      domain: insurance
+      geography: usa
+    - name: "OSFI"
+      url: "https://www.osfi-bsif.gc.ca/en"
+      domain: regulatory_compliance
+      geography: canada
+    - name: "FCAC"
+      url: "https://www.canada.ca/en/financial-consumer-agency.html"
+      domain: regulatory_compliance
+      geography: canada
+    - name: "CFPB"
+      url: "https://www.consumerfinance.gov"
+      domain: regulatory_compliance
+      geography: usa
+    - name: "SEC"
+      url: "https://www.sec.gov"
+      domain: regulatory_compliance
+      geography: usa
+  respect_robots_txt: true
+  delay_seconds: 2
+
+apis:
+  enabled: true
+  sec_edgar:
+    enabled: true
+    base_url: "https://efts.sec.gov/LATEST/search-index"
+  osfi_guidelines:
+    enabled: true
+    base_url: "https://www.osfi-bsif.gc.ca/en/guidance"

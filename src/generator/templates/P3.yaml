@@ -1,0 +1,88 @@
+id: P3
+dimension: robustness
+subdimension: phrasing_variants
+description: "Role-play phrasing style"
+
+system_prompt: |
+  You are an expert prompt engineer for financial services LLM evaluation.
+  Your task is to generate evaluation prompts that test an LLM's knowledge
+  of banking, financial services, and insurance (BFSI) topics. The prompts
+  you generate must use a role-play phrasing style where the user assigns
+  a persona to the LLM (e.g., "You are a chief risk officer...") and frames
+  the question within that professional scenario.
+
+user_message_template: |
+  Generate a single evaluation prompt in ROLE-PLAY phrasing style for the
+  following BFSI topic.
+
+  Topic context:
+  {scraped_content}
+
+  The prompt must assign a specific BFSI professional role to the model
+  and frame the question as a realistic workplace scenario. The role and
+  scenario must be relevant to the topic.
+
+generation_instruction: |
+  Create one evaluation prompt using ROLE-PLAY phrasing style.
+  - Source domain: {source_domain}
+  - Geography: {geography}
+  - Difficulty: {difficulty}
+  - Reference material: {scraped_content}
+
+  Rules:
+  1. Begin with a role assignment: "You are a [specific BFSI role]..."
+  2. Set a realistic professional scenario (board meeting, audit, client call).
+  3. The core question must be embedded naturally within the scenario.
+  4. The underlying intent must be identical to what a P1 direct prompt
+     would ask for the same topic.
+  5. The role must be appropriate for the difficulty level (junior analyst
+     for easy, CRO/CFO for hard).
+  6. Tag the output with difficulty level and geography.
+
+negative_examples:
+  - prompt: >
+      You are the Chief Risk Officer of a large Indian bank. The board has
+      asked you to present the bank's approach to credit risk under the
+      Basel III IRB approach. Summarize the key components of the IRB
+      framework including PD, LGD, and EAD estimation requirements.
+    bad_response: >
+      As CRO, I would tell the board that we use internal models to assess
+      credit risk. Our models look at various factors to determine risk.
+      We follow all regulatory requirements.
+    why_bad: >
+      Adopts the persona but provides no technical substance. Does not explain
+      PD (Probability of Default), LGD (Loss Given Default), or EAD (Exposure
+      at Default) estimation methodologies, nor distinguish between Foundation
+      IRB and Advanced IRB approaches, nor mention validation requirements
+      or the supervisory approval process.
+
+  - prompt: >
+      You are an actuary at a life insurance company in the UK. Your manager
+      has asked you to explain the impact of Solvency II on reserving
+      practices. What are the key changes compared to Solvency I?
+    bad_response: >
+      Solvency II introduced new capital requirements for insurance companies
+      in Europe. It changed how we calculate reserves. The main pillars are
+      about capital, governance, and disclosure.
+    why_bad: >
+      Generic overview that fails the role-play. An actuary should discuss
+      the shift from Solvency I's formulaic approach to Solvency II's
+      market-consistent technical provisions, the risk margin calculation
+      using cost-of-capital method, the best estimate liability concept,
+      and the impact on reserving methodologies like the chain-ladder method.
+
+  - prompt: >
+      You are a compliance officer at a payment services firm. A new product
+      team wants to launch a cross-border remittance service. Walk them
+      through the key AML/KYC obligations they must satisfy under FATF
+      Recommendation 16 (the travel rule).
+    bad_response: >
+      For cross-border payments, you need to verify customer identity and
+      report suspicious transactions. Make sure to follow local regulations
+      and keep good records.
+    why_bad: >
+      Does not address the travel rule specifically. Must explain the
+      requirement to include originator and beneficiary information (name,
+      account number, address) in wire transfers above the threshold,
+      the obligations of ordering, intermediary, and beneficiary institutions,
+      and the de minimis threshold variations by jurisdiction.

@@ -1,0 +1,33 @@
+generation_model:
+  provider: openai            # openai | anthropic | mistral | custom
+  model_name: gpt-4o
+  api_key_env: GENERATION_API_KEY
+  temperature: 0.7
+  max_tokens: 1500
+
+dataset:
+  target_total: 2910
+  mode: full_refresh          # full_refresh | incremental
+  output_dir: data/final/
+  seed: 42
+  version: "1.0.0"
+
+domain_split:                 # Must sum to 1.0
+  insurance: 0.25
+  banking: 0.20
+  investments_wealth: 0.15
+  tax_retirement: 0.15
+  regulatory_compliance: 0.10
+  general_financial_literacy: 0.10
+  financial_history_events: 0.05
+
+dimension_split:              # Target counts per dimension
+  hallucination: 950
+  consistency: 380
+  robustness: 1010
+  safety: 570
+
+difficulty_split:             # Must sum to 1.0
+  easy: 0.20
+  medium: 0.40
+  hard: 0.40

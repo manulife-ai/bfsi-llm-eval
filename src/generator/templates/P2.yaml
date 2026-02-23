@@ -1,0 +1,85 @@
+id: P2
+dimension: robustness
+subdimension: phrasing_variants
+description: "Polite/verbose phrasing style"
+
+system_prompt: |
+  You are an expert prompt engineer for financial services LLM evaluation.
+  Your task is to generate evaluation prompts that test an LLM's knowledge
+  of banking, financial services, and insurance (BFSI) topics. The prompts
+  you generate must use a polite, verbose phrasing style with courteous
+  language, background context, and conversational tone. The question should
+  read as if a client or junior employee is respectfully asking for help.
+
+user_message_template: |
+  Generate a single evaluation prompt in POLITE/VERBOSE phrasing style for
+  the following BFSI topic.
+
+  Topic context:
+  {scraped_content}
+
+  The prompt must include polite language ("Could you please...",
+  "I would appreciate if..."), provide some background context before the
+  actual question, and use a conversational, deferential tone.
+
+generation_instruction: |
+  Create one evaluation prompt using POLITE/VERBOSE phrasing style.
+  - Source domain: {source_domain}
+  - Geography: {geography}
+  - Difficulty: {difficulty}
+  - Reference material: {scraped_content}
+
+  Rules:
+  1. The prompt must open with polite framing and background context.
+  2. Include at least 2-3 sentences of setup before the core question.
+  3. Use phrases like "Could you kindly explain...", "I'd be grateful if...",
+     "Would you mind walking me through...".
+  4. The underlying question must be identical in intent to what a P1 direct
+     prompt would ask for the same topic.
+  5. The expected answer should be the same regardless of the polite wrapping.
+  6. Tag the output with difficulty level and geography.
+
+negative_examples:
+  - prompt: >
+      Hi there, I hope you're doing well! I've been reading about how banks
+      manage their capital and I came across something called the Capital
+      Adequacy Ratio. Could you please explain what the minimum CAR
+      requirement is for scheduled commercial banks in India under Basel III?
+    bad_response: >
+      Hello! Great question. The Capital Adequacy Ratio is very important
+      for banks. It helps ensure stability. Banks need to keep enough capital.
+      I hope that helps!
+    why_bad: >
+      Mirrors the polite tone but provides zero substance. Does not state
+      the 9% minimum CAR for Indian banks (vs Basel III global 8%), nor
+      break down the CET1 (5.5%), AT1, and Tier 2 components. Politeness
+      in the question does not excuse vagueness in the answer.
+
+  - prompt: >
+      I'm currently studying for my insurance certification and would really
+      appreciate your help. Could you kindly explain the difference between
+      a term life insurance policy and a whole life insurance policy, including
+      the key financial implications for the policyholder?
+    bad_response: >
+      Of course! Term life covers you for a specific period, while whole life
+      covers you for your entire life. Term is cheaper and whole life has a
+      savings component.
+    why_bad: >
+      Superficial comparison that omits critical financial details: cash value
+      accumulation mechanics in whole life, surrender charges, tax treatment
+      of maturity proceeds under Section 10(10D), premium differential
+      magnitude, and the absence of maturity benefit in term plans.
+
+  - prompt: >
+      Good afternoon. I'm a relationship manager at a mid-sized bank and
+      a corporate client has asked me about LIBOR transition. Would you
+      mind explaining the key replacement benchmarks and the timeline for
+      the transition away from LIBOR?
+    bad_response: >
+      LIBOR is being replaced by new rates. Different countries have different
+      replacements. The transition has been ongoing for a few years now.
+    why_bad: >
+      Fails to name specific alternative reference rates (SOFR for USD, SONIA
+      for GBP, TONAR for JPY, etc.), does not mention the June 2023 USD LIBOR
+      cessation date, and ignores fallback provisions and spread adjustments
+      that are critical for existing contracts.

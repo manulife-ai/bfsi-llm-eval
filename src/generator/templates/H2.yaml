@@ -1,0 +1,97 @@
+id: H2
+dimension: hallucination
+subdimension: open_book_faithfulness
+description: >
+  Tests whether the model faithfully grounds its answer in a provided reference
+  excerpt rather than injecting outside knowledge or fabricating details. A
+  reference passage is included in the prompt and the model must answer solely
+  based on its contents. Failures occur when the model adds unsupported claims,
+  contradicts the excerpt, or hallucinates details not present in the source.
+
+system_prompt: >
+  You are a financial-services analyst. You will be given a reference excerpt
+  and a question. Answer the question using ONLY the information in the excerpt.
+  If the excerpt does not contain enough information to answer fully, say so
+  explicitly. Do not supplement with outside knowledge.
+
+user_message_template: >
+  Reference excerpt:
+  ---
+  {reference}
+  ---
+
+  Question: {prompt}
+
+generation_instruction: >
+  Generate an open-book faithfulness evaluation item for {source_domain} in the
+  {geography} market. Difficulty level: {difficulty}.
+
+  Using the following scraped content as the reference excerpt, craft a question
+  whose answer is contained within the excerpt. The question should require
+  careful reading — a model that skims or relies on prior knowledge instead of
+  the excerpt should fail.
+
+  ---
+  {scraped_content}
+  ---
+
+  Return a JSON object with keys:
+    "reference" (the excerpt to include in the prompt, may be lightly edited for
+      clarity but must preserve factual content),
+    "prompt" (the question),
+    "reference_answer" (the correct answer derived strictly from the excerpt),
+    "unsupported_claims" (a list of 2-3 plausible but unsupported statements a
+      model might add).
+
+negative_examples:
+  - prompt: >
+      Reference excerpt: "Under the RBI's 2023 circular on digital lending,
+      regulated entities must ensure that loan disbursements are made directly
+      into the borrower's bank account and not through any third-party pass-
+      through account."
+
+      Question: What does the RBI 2023 digital lending circular say about loan
+      disbursement?
+    bad_response: >
+      The RBI circular mandates that loan disbursements go directly to the
+      borrower's bank account. Additionally, the circular caps interest rates
+      on digital loans at 24% per annum and requires a mandatory three-day
+      cooling-off period for all digital loans under Rs 1 lakh.
+    why_bad: >
+      The first sentence is faithful to the excerpt. However, the interest rate
+      cap and cooling-off period are fabricated additions not present in the
+      provided reference. This is a classic open-book faithfulness failure where
+      the model injects plausible but unsupported claims.
+
+  - prompt: >
+      Reference excerpt: "Solvency II requires EU insurance undertakings to hold
+      eligible own funds covering the Solvency Capital Requirement (SCR). The SCR
+      is calibrated to a 99.5% Value-at-Risk over a one-year horizon."
+
+      Question: What confidence level is the SCR calibrated to under Solvency II?
+    bad_response: >
+      The SCR is calibrated to a 99.5% Value-at-Risk over a one-year time
+      horizon. This is similar to the Minimum Capital Requirement (MCR), which
+      is set at an 85% VaR confidence level and acts as a lower safety net
+      triggering automatic supervisory intervention.
+    why_bad: >
+      While the direct answer (99.5% VaR) is correct, the model gratuitously
+      adds information about the MCR threshold that is not in the provided
+      excerpt. Even though the added claim is factually accurate, it violates
+      the faithfulness constraint of answering only from the given reference.
+
+  - prompt: >
+      Reference excerpt: "JPMorgan Chase reported Q3 2024 net revenue of $42.4
+      billion, an increase of 6% year-over-year, driven primarily by higher
+      net interest income in Consumer & Community Banking."
+
+      Question: What drove JPMorgan Chase's revenue increase in Q3 2024?
+    bad_response: >
+      The revenue increase was driven by higher net interest income in Consumer
+      & Community Banking, strong performance in the Investment Banking division
+      with advisory fees up 12%, and growth in asset management fees.
+    why_bad: >
+      The excerpt only mentions higher net interest income in Consumer &
+      Community Banking. The claims about Investment Banking advisory fees and
+      asset management fees are hallucinated details not present in the source
+      material, even if they might be true in reality.
